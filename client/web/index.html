@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realworld Simulation - Web Client</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Monaco', 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #0a0a0a;
+            padding: 15px 20px;
+            border-bottom: 2px solid #00ff00;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            color: #00ff00;
+        }
+
+        .status-bar {
+            background: #0f0f0f;
+            padding: 8px 20px;
+            font-size: 12px;
+            color: #888;
+            border-bottom: 1px solid #333;
+        }
+
+        .terminal {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .output-line {
+            margin-bottom: 10px;
+            white-space: pre-wrap;
+        }
+
+        .success {
+            color: #00ff00;
+        }
+
+        .error {
+            color: #ff3333;
+        }
+
+        .info {
+            color: #ffff00;
+        }
+
+        .timestamp {
+            color: #666;
+            font-size: 11px;
+        }
+
+        .input-area {
+            background: #0a0a0a;
+            padding: 15px 20px;
+            border-top: 2px solid #00ff00;
+            display: flex;
+            gap: 10px;
+        }
+
+        .prompt {
+            color: #00ff00;
+            font-weight: bold;
+        }
+
+        input {
+            flex: 1;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #00ff00;
+            padding: 8px 12px;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #00ff00;
+        }
+
+        button {
+            background: #00aa00;
+            color: #000;
+            border: none;
+            padding: 8px 20px;
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #00ff00;
+        }
+
+        button:active {
+            background: #008800;
+        }
+
+        .connection-status {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .connected {
+            background: #00ff00;
+            box-shadow: 0 0 10px #00ff00;
+        }
+
+        .disconnected {
+            background: #ff3333;
+            box-shadow: 0 0 10px #ff3333;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>[ REALWORLD SIMULATION - WEB TERMINAL ]</h1>
+    </div>
+
+    <div class="status-bar">
+        <span class="connection-status" id="status-indicator"></span>
+        <span id="status-text">Connecting...</span>
+    </div>
+
+    <div class="terminal" id="terminal">
+        <div class="output-line info">
+            Welcome to Realworld Simulation<br>
+            Type 'help' for available commands<br>
+            ────────────────────────────────────────<br>
+        </div>
+    </div>
+
+    <div class="input-area">
+        <span class="prompt">&gt;</span>
+        <input type="text" id="command-input" placeholder="Enter command..." autofocus>
+        <button onclick="sendCommand()">Send</button>
+    </div>
+
+    <script>
+        const gatewayURL = 'http://localhost:8080';
+        const terminal = document.getElementById('terminal');
+        const commandInput = document.getElementById('command-input');
+        const statusIndicator = document.getElementById('status-indicator');
+        const statusText = document.getElementById('status-text');
+
+        let commandHistory = [];
+        let historyIndex = -1;
+
+        // Check connection status
+        async function checkConnection() {
+            try {
+                const response = await fetch(gatewayURL + '/health');
+                if (response.ok) {
+                    setConnected(true);
+                } else {
+                    setConnected(false);
+                }
+            } catch (error) {
+                setConnected(false);
+            }
+        }
+
+        function setConnected(connected) {
+            if (connected) {
+                statusIndicator.className = 'connection-status connected';
+                statusText.textContent = 'Connected to ' + gatewayURL;
+            } else {
+                statusIndicator.className = 'connection-status disconnected';
+                statusText.textContent = 'Disconnected - Retrying...';
+                setTimeout(checkConnection, 3000);
+            }
+        }
+
+        // Send command
+        async function sendCommand() {
+            const text = commandInput.value.trim();
+            if (!text) return;
+
+            // Add to history
+            commandHistory.unshift(text);
+            historyIndex = -1;
+
+            // Display command
+            appendOutput(`> ${text}`, 'info');
+            commandInput.value = '';
+
+            try {
+                const response = await fetch(gatewayURL + '/cmd/text', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                displayResponse(data);
+            } catch (error) {
+                appendOutput(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        function displayResponse(data) {
+            const className = data.success ? 'success' : 'error';
+            const symbol = data.success ? '✓' : '✗';
+            
+            let message = `${symbol} ${data.message}`;
+            
+            if (data.data) {
+                message += '\n' + JSON.stringify(data.data, null, 2);
+            }
+
+            appendOutput(message, className);
+        }
+
+        function appendOutput(text, className = '') {
+            const line = document.createElement('div');
+            line.className = `output-line ${className}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            line.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${text}`;
+            
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        // Handle Enter key
+        commandInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                sendCommand();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (historyIndex < commandHistory.length - 1) {
+                    historyIndex++;
+                    commandInput.value = commandHistory[historyIndex];
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (historyIndex > 0) {
+                    historyIndex--;
+                    commandInput.value = commandHistory[historyIndex];
+                } else if (historyIndex === 0) {
+                    historyIndex = -1;
+                    commandInput.value = '';
+                }
+            }
+        });
+
+        // Initialize
+        checkConnection();
+        setInterval(checkConnection, 10000);
+    </script>
+</body>
+</html>
+

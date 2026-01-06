@@ -1,0 +1,230 @@
+version: '3.8'
+
+services:
+  # PostgreSQL databases
+  postgres-character:
+    image: postgres:15-alpine
+    container_name: character_db
+    environment:
+      POSTGRES_DB: character_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - character_data:/var/lib/postgresql/data
+      - ./migrations/character_db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - game-network
+
+  postgres-world:
+    image: postgres:15-alpine
+    container_name: world_db
+    environment:
+      POSTGRES_DB: world_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - world_data:/var/lib/postgresql/data
+      - ./migrations/world_db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - game-network
+
+  postgres-contracts:
+    image: postgres:15-alpine
+    container_name: contracts_db
+    environment:
+      POSTGRES_DB: contracts_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - contracts_data:/var/lib/postgresql/data
+      - ./migrations/contracts_db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - game-network
+
+  postgres-ledger:
+    image: postgres:15-alpine
+    container_name: ledger_db
+    environment:
+      POSTGRES_DB: ledger_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    volumes:
+      - ledger_data:/var/lib/postgresql/data
+      - ./migrations/ledger_db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - game-network
+
+  postgres-feed:
+    image: postgres:15-alpine
+    container_name: feed_db
+    environment:
+      POSTGRES_DB: feed_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5436:5432"
+    volumes:
+      - feed_data:/var/lib/postgresql/data
+      - ./migrations/feed_db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - game-network
+
+  # Apache Pulsar
+  pulsar:
+    image: apachepulsar/pulsar:3.1.2
+    container_name: pulsar
+    command: bin/pulsar standalone
+    ports:
+      - "6650:6650"  # Pulsar broker
+      - "8080:8080"  # Pulsar admin
+    volumes:
+      - pulsar_data:/pulsar/data
+    networks:
+      - game-network
+
+  # Redis (for caching and rate limiting)
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - game-network
+
+  # Command Gateway Service
+  gateway:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gateway
+    container_name: gateway
+    environment:
+      PORT: "8080"
+      CHARACTER_SERVICE_ADDR: "character:50051"
+      WORLD_SERVICE_ADDR: "world:50052"
+      CONTRACTS_SERVICE_ADDR: "contracts:50053"
+      LEDGER_SERVICE_ADDR: "ledger:50054"
+      IDENTITY_SERVICE_ADDR: "identity:50055"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+    networks:
+      - game-network
+
+  # Character Service
+  character:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.character
+    container_name: character_service
+    environment:
+      PORT: "50051"
+      DB_HOST: "postgres-character"
+      DB_PORT: "5432"
+      DB_USER: "postgres"
+      DB_PASSWORD: "postgres"
+      DB_NAME: "character_db"
+      PULSAR_URL: "pulsar://pulsar:6650"
+    depends_on:
+      - postgres-character
+      - pulsar
+    networks:
+      - game-network
+
+  # World Service
+  world:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.world
+    container_name: world_service
+    environment:
+      PORT: "50052"
+      DB_HOST: "postgres-world"
+      DB_PORT: "5432"
+      DB_USER: "postgres"
+      DB_PASSWORD: "postgres"
+      DB_NAME: "world_db"
+    depends_on:
+      - postgres-world
+    networks:
+      - game-network
+
+  # Contracts Service
+  contracts:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.contracts
+    container_name: contracts_service
+    environment:
+      PORT: "50053"
+      DB_HOST: "postgres-contracts"
+      DB_PORT: "5432"
+      DB_USER: "postgres"
+      DB_PASSWORD: "postgres"
+      DB_NAME: "contracts_db"
+      PULSAR_URL: "pulsar://pulsar:6650"
+    depends_on:
+      - postgres-contracts
+      - pulsar
+    networks:
+      - game-network
+
+  # Ledger Service (Rust)
+  ledger:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ledger
+    container_name: ledger_service
+    environment:
+      BIND_ADDR: "0.0.0.0:50054"
+      DATABASE_URL: "postgres://postgres:postgres@postgres-ledger:5432/ledger_db"
+      PULSAR_URL: "pulsar://pulsar:6650"
+    depends_on:
+      - postgres-ledger
+      - pulsar
+    networks:
+      - game-network
+
+  # Event Feed Service
+  feed:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.feed
+    container_name: feed_service
+    environment:
+      PORT: "50056"
+      DB_HOST: "postgres-feed"
+      DB_PORT: "5432"
+      DB_USER: "postgres"
+      DB_PASSWORD: "postgres"
+      DB_NAME: "feed_db"
+      PULSAR_URL: "pulsar://pulsar:6650"
+    depends_on:
+      - postgres-feed
+      - pulsar
+    networks:
+      - game-network
+
+volumes:
+  character_data:
+  world_data:
+  contracts_data:
+  ledger_data:
+  feed_data:
+  pulsar_data:
+  redis_data:
+
+networks:
+  game-network:
+    driver: bridge
+

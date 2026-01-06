@@ -1,0 +1,171 @@
+syntax = "proto3";
+
+package game.common.v1;
+
+option go_package = "github.com/realworld/proto/common;commonpb";
+
+import "google/protobuf/timestamp.proto";
+
+// Common ID types
+message CharacterID {
+  string id = 1;
+}
+
+message PlayerID {
+  string id = 1;
+}
+
+message NPCID {
+  string id = 1;
+}
+
+message PlaceID {
+  string id = 1;
+}
+
+message DistrictID {
+  string id = 1;
+}
+
+message ContractID {
+  string id = 1;
+}
+
+message AccountID {
+  string id = 1;
+}
+
+message ItemID {
+  string id = 1;
+}
+
+message VehicleID {
+  string id = 1;
+}
+
+message ShipmentID {
+  string id = 1;
+}
+
+message FacilityID {
+  string id = 1;
+}
+
+message MachineID {
+  string id = 1;
+}
+
+// Money representation
+message Money {
+  int64 amount = 1; // in smallest unit (cents)
+  string currency = 2; // "IGC" for in-game currency
+}
+
+// Location reference
+message LocationRef {
+  oneof location {
+    PlaceID place_id = 1;
+    DistrictID district_id = 2;
+    FacilityID facility_id = 3;
+  }
+}
+
+// Owner reference (for inventory, contracts)
+message OwnerRef {
+  oneof owner {
+    CharacterID character_id = 1;
+    NPCID npc_id = 2;
+    FacilityID facility_id = 3;
+    VehicleID vehicle_id = 4;
+  }
+}
+
+// UI Message blocks for client rendering
+message UIMessage {
+  repeated UIBlock blocks = 1;
+}
+
+message UIBlock {
+  oneof block_type {
+    TextBlock text = 1;
+    TableBlock table = 2;
+    OptionsBlock options = 3;
+    StatusBlock status = 4;
+    ErrorBlock error = 5;
+  }
+}
+
+message TextBlock {
+  string content = 1;
+  string style = 2; // "normal", "header", "info", "warning"
+}
+
+message TableBlock {
+  repeated string headers = 1;
+  repeated TableRow rows = 2;
+}
+
+message TableRow {
+  repeated string cells = 1;
+}
+
+message OptionsBlock {
+  string prompt = 1;
+  repeated Option options = 2;
+}
+
+message Option {
+  string label = 1;
+  string command = 2; // suggested command to run
+}
+
+message StatusBlock {
+  map<string, string> fields = 1;
+}
+
+message ErrorBlock {
+  string error_code = 1;
+  string message = 2;
+  map<string, string> details = 3;
+}
+
+// Command metadata
+message CommandMetadata {
+  string command_id = 1;
+  string correlation_id = 2;
+  google.protobuf.Timestamp issued_at = 3;
+  string issuer_id = 4; // player_id or npc_id or "system"
+}
+
+// Event envelope (for Pulsar)
+message EventEnvelope {
+  string event_id = 1;
+  string event_type = 2;
+  google.protobuf.Timestamp occurred_at = 3;
+  string producer_service = 4;
+  string schema_version = 5;
+  string entity_type = 6;
+  string entity_id = 7;
+  string correlation_id = 8;
+  string actor = 9; // player_id / npc_id / system
+  bytes payload = 10; // serialized domain event
+}
+
+// Coordinates (for future map rendering)
+message Coordinates {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+// Time duration
+message Duration {
+  int64 seconds = 1;
+}
+
+// Generic result wrapper
+message Result {
+  bool success = 1;
+  string message = 2;
+  UIMessage ui_message = 3;
+}
+

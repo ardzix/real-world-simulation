@@ -1,0 +1,179 @@
+syntax = "proto3";
+
+package game.ledger.v1;
+
+option go_package = "github.com/realworld/proto/ledger;ledgerpb";
+
+import "google/protobuf/timestamp.proto";
+import "proto/common/types.proto";
+
+service LedgerService {
+  // Account queries
+  rpc GetBalance(GetBalanceRequest) returns (GetBalanceResponse);
+  rpc GetLedgerEntries(GetLedgerEntriesRequest) returns (GetLedgerEntriesResponse);
+  
+  // Transactions
+  rpc PostTransaction(PostTransactionRequest) returns (PostTransactionResponse);
+  rpc Transfer(TransferRequest) returns (TransferResponse);
+  
+  // Tax & Payroll
+  rpc ApplyTax(ApplyTaxRequest) returns (ApplyTaxResponse);
+  rpc PayrollPayout(PayrollPayoutRequest) returns (PayrollPayoutResponse);
+  
+  // Account management
+  rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse);
+}
+
+message GetBalanceRequest {
+  game.common.v1.AccountID account_id = 1;
+}
+
+message GetBalanceResponse {
+  game.common.v1.AccountID account_id = 1;
+  game.common.v1.Money balance = 2;
+  google.protobuf.Timestamp as_of = 3;
+}
+
+message GetLedgerEntriesRequest {
+  game.common.v1.AccountID account_id = 1;
+  google.protobuf.Timestamp start_date = 2;
+  google.protobuf.Timestamp end_date = 3;
+  int32 limit = 4;
+  string cursor = 5;
+}
+
+message GetLedgerEntriesResponse {
+  repeated LedgerEntry entries = 1;
+  string next_cursor = 2;
+}
+
+message LedgerEntry {
+  string entry_id = 1;
+  string transaction_id = 2;
+  game.common.v1.AccountID account_id = 3;
+  string entry_type = 4; // "debit" or "credit"
+  game.common.v1.Money amount = 5;
+  string description = 6;
+  google.protobuf.Timestamp posted_at = 7;
+  map<string, string> metadata = 8;
+}
+
+message PostTransactionRequest {
+  repeated TransactionEntry entries = 1;
+  string description = 2;
+  game.common.v1.CommandMetadata metadata = 3;
+}
+
+message TransactionEntry {
+  game.common.v1.AccountID account_id = 1;
+  string entry_type = 2; // "debit" or "credit"
+  game.common.v1.Money amount = 3;
+}
+
+message PostTransactionResponse {
+  bool success = 1;
+  string transaction_id = 2;
+  string message = 3;
+}
+
+message TransferRequest {
+  game.common.v1.AccountID from_account = 1;
+  game.common.v1.AccountID to_account = 2;
+  game.common.v1.Money amount = 3;
+  string reason = 4;
+  game.common.v1.CommandMetadata metadata = 5;
+}
+
+message TransferResponse {
+  bool success = 1;
+  string transaction_id = 2;
+  string message = 3;
+}
+
+message ApplyTaxRequest {
+  string tax_type = 1; // "income", "transaction", "property"
+  string base_ref = 2; // reference to what's being taxed
+  game.common.v1.Money base_amount = 3;
+  game.common.v1.AccountID from_account = 4;
+  game.common.v1.AccountID tax_account = 5;
+  game.common.v1.CommandMetadata metadata = 6;
+}
+
+message ApplyTaxResponse {
+  bool success = 1;
+  game.common.v1.Money tax_amount = 2;
+  string transaction_id = 3;
+  string message = 4;
+}
+
+message PayrollPayoutRequest {
+  string payroll_id = 1;
+  game.common.v1.AccountID recipient_account = 2;
+  game.common.v1.Money gross_amount = 3;
+  string payroll_type = 4; // "public_service", "bumn", "private"
+  string ruleset_ref = 5;
+  game.common.v1.CommandMetadata metadata = 6;
+}
+
+message PayrollPayoutResponse {
+  bool success = 1;
+  game.common.v1.Money net_amount = 2;
+  game.common.v1.Money tax_withheld = 3;
+  string transaction_id = 4;
+  string message = 5;
+  bool minted = 6; // true if new money was minted
+}
+
+message CreateAccountRequest {
+  game.common.v1.OwnerRef owner = 1;
+  string account_type = 2; // "player", "npc", "government", "company"
+  game.common.v1.CommandMetadata metadata = 3;
+}
+
+message CreateAccountResponse {
+  bool success = 1;
+  game.common.v1.AccountID account_id = 2;
+  string message = 3;
+}
+
+// Events
+message LedgerEvent {
+  oneof event {
+    TransactionPostedEvent transaction_posted = 1;
+    TaxCollectedEvent tax_collected = 2;
+    PayrollPaidEvent payroll_paid = 3;
+    MintExecutedEvent mint_executed = 4;
+  }
+}
+
+message TransactionPostedEvent {
+  string transaction_id = 1;
+  repeated TransactionEntry entries = 2;
+  string description = 3;
+  google.protobuf.Timestamp posted_at = 4;
+}
+
+message TaxCollectedEvent {
+  string tax_type = 1;
+  game.common.v1.Money amount = 2;
+  game.common.v1.AccountID from_account = 3;
+  game.common.v1.AccountID tax_account = 4;
+}
+
+message PayrollPaidEvent {
+  string payroll_id = 1;
+  game.common.v1.AccountID recipient_account = 2;
+  game.common.v1.Money gross_amount = 3;
+  game.common.v1.Money net_amount = 4;
+  string payroll_type = 5;
+  bool minted = 6;
+}
+
+message MintExecutedEvent {
+  game.common.v1.Money amount = 1;
+  string purpose = 2;
+  string authorization_ref = 3;
+  google.protobuf.Timestamp minted_at = 4;
+  bool audited = 5;
+}
+

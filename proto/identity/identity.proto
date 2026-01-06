@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package game.identity.v1;
+
+option go_package = "github.com/realworld/proto/identity;identitypb";
+
+import "google/protobuf/timestamp.proto";
+import "proto/common/types.proto";
+
+service IdentityService {
+  // Authentication
+  rpc Authenticate(AuthRequest) returns (AuthResponse);
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+  
+  // User & Character management
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc LinkCharacter(LinkCharacterRequest) returns (LinkCharacterResponse);
+  rpc GetActiveCharacter(GetActiveCharacterRequest) returns (GetActiveCharacterResponse);
+}
+
+message AuthRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message AuthResponse {
+  bool success = 1;
+  string token = 2;
+  google.protobuf.Timestamp expires_at = 3;
+  game.common.v1.PlayerID player_id = 4;
+  string message = 5;
+}
+
+message ValidateTokenRequest {
+  string token = 1;
+}
+
+message ValidateTokenResponse {
+  bool valid = 1;
+  game.common.v1.PlayerID player_id = 2;
+  game.common.v1.CharacterID character_id = 3; // active character
+}
+
+message CreateUserRequest {
+  string username = 1;
+  string password = 2;
+  string email = 3;
+}
+
+message CreateUserResponse {
+  bool success = 1;
+  game.common.v1.PlayerID player_id = 2;
+  string message = 3;
+}
+
+message GetUserRequest {
+  game.common.v1.PlayerID player_id = 1;
+}
+
+message GetUserResponse {
+  game.common.v1.PlayerID player_id = 1;
+  string username = 2;
+  string email = 3;
+  repeated game.common.v1.CharacterID character_ids = 4;
+}
+
+message LinkCharacterRequest {
+  game.common.v1.PlayerID player_id = 1;
+  game.common.v1.CharacterID character_id = 2;
+  bool set_active = 3;
+}
+
+message LinkCharacterResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetActiveCharacterRequest {
+  game.common.v1.PlayerID player_id = 1;
+}
+
+message GetActiveCharacterResponse {
+  game.common.v1.CharacterID character_id = 1;
+}
+

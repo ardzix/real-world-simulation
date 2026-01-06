@@ -1,14 +1,14 @@
 # 🚀 Quick Start Guide
 
-Panduan cepat untuk menjalankan Realworld Simulation dalam 5 menit.
+Quick guide to running Realworld Simulation in 5 minutes.
 
 ## Prerequisites
 
-Pastikan sudah terinstall:
+Make sure you have:
 - Docker
 - Docker Compose
 
-Itu saja! Semua service akan berjalan di container.
+That’s it – all services will run in containers.
 
 ## Step 1: Clone & Setup
 
@@ -19,70 +19,70 @@ cd /home/ardz/Documents/realworld_simulation
 ## Step 2: Start Services
 
 ```bash
-# Start semua services
+# Start all services
 make up
 
-# Atau tanpa make:
+# Or without make:
 docker-compose up -d
 
-# Tunggu ~10 detik untuk inisialisasi
+# Wait ~10 seconds for initialization
 ```
 
-## Step 3: Seed Database
+## Step 3: Seed Databases
 
 ```bash
 make seed
 
-# Atau tanpa make:
+# Or without make:
 chmod +x scripts/seed_all.sh
 ./scripts/seed_all.sh
 ```
 
 ## Step 4: Test!
 
-### Opsi 1: Via curl
+### Option 1: Via curl
 
 ```bash
-# Cek status karakter
+# Check character status
 curl -X POST http://localhost:8080/cmd/text \
   -H "Content-Type: application/json" \
   -d '{"text": "status"}'
 
-# Lihat lokasi terdekat
+# Show nearby locations
 curl -X POST http://localhost:8080/cmd/text \
   -H "Content-Type: application/json" \
   -d '{"text": "go list"}'
 
-# Mulai kerja
+# Start working
 curl -X POST http://localhost:8080/cmd/text \
   -H "Content-Type: application/json" \
   -d '{"text": "work start"}'
 
-# Lihat kontrak
+# List contracts
 curl -X POST http://localhost:8080/cmd/text \
   -H "Content-Type: application/json" \
   -d '{"text": "contract list"}'
 ```
 
-### Opsi 2: Web Browser
+### Option 2: Web Browser
 
-Buka file `client/web/index.html` di browser:
+Open `client/web/index.html` in your browser:
 
 ```bash
 # Linux
 xdg-open client/web/index.html
 
-# atau langsung
+# or directly
 firefox client/web/index.html
 ```
 
-Kemudian ketik commands seperti:
+Then type commands like:
 - `status`
 - `go list`
 - `work start`
 - `help`
 
-### Opsi 3: Terminal Client
+### Option 3: Terminal Client
 
 ```bash
 # Build terminal client
@@ -96,60 +96,60 @@ go build -o terminal-client
 ## Available Commands
 
 ```
-status              - Lihat status karakter
-go list             - Lihat lokasi terdekat
-go <place>          - Pindah ke lokasi
-travel list         - Lihat district yang tersedia
-travel <district>   - Travel ke district lain
-work start          - Mulai bekerja
-work stop           - Berhenti bekerja
-eat                 - Makan untuk restore hunger
-sleep               - Tidur untuk restore energy
-contract list       - Lihat kontrak
-contract sign <id>  - Tanda tangan kontrak
-help                - Bantuan
+status              - Show character status
+go list             - List nearby locations
+go <place>          - Move to a location
+travel list         - List available districts
+travel <district>   - Travel to another district
+work start          - Start working
+work stop           - Stop working
+eat                 - Eat to restore hunger
+sleep               - Sleep to restore energy
+contract list       - List contracts
+contract sign <id>  - Sign a contract
+help                - Show help
 ```
 
 ## Troubleshooting
 
-### Port sudah digunakan?
+### Port already in use?
 
 ```bash
 # Stop services
 make down
 
-# Atau ubah port di docker-compose.yml
+# Or change the port in docker-compose.yml
 ```
 
-### Services tidak bisa connect?
+### Services cannot connect?
 
 ```bash
-# Restart semua
+# Restart everything
 make restart
 
-# Cek logs
+# Check logs
 make logs
 ```
 
-### Reset semua data
+### Reset all data
 
 ```bash
-# Hapus semua data dan start fresh
+# Remove all data and start fresh
 make clean
 make up
 make seed
 ```
 
-## Cek Service Health
+## Check Service Health
 
 ```bash
 # Gateway health
 curl http://localhost:8080/health
 
-# Lihat running containers
+# Show running containers
 docker-compose ps
 
-# Lihat logs
+# Show logs
 docker-compose logs -f gateway
 docker-compose logs -f character
 ```
@@ -157,34 +157,34 @@ docker-compose logs -f character
 ## Stop Services
 
 ```bash
-# Stop semua (data tetap ada)
+# Stop all (data is preserved)
 make down
 
-# Stop dan hapus semua data
+# Stop and delete all data
 make clean
 ```
 
 ## Development Mode
 
-Untuk develop tanpa rebuild container:
+For development without rebuilding containers:
 
 ```bash
-# Start hanya databases & infrastructure
+# Start only databases & infrastructure
 docker-compose up postgres-character postgres-world postgres-contracts postgres-ledger postgres-feed pulsar redis -d
 
-# Run services di terminal terpisah
+# Run services in separate terminals
 cd services/gateway && go run main.go
 cd services/character && go run main.go
 cd services/world && go run main.go
-# dst...
+# etc...
 ```
 
 ## Next Steps
 
-- Baca [README.md](README.md) untuk dokumentasi lengkap
-- Baca [white_paper.md](white_paper.md) untuk design philosophy
-- Explore database schema di `migrations/`
-- Check proto definitions di `proto/`
+- Read [README.md](README.md) for full documentation.
+- Read [white_paper.md](white_paper.md) for design philosophy.
+- Explore database schemas in `migrations/`.
+- Check proto definitions in `proto/`.
 
 ## Architecture Overview
 
@@ -208,5 +208,5 @@ cd services/world && go run main.go
        All services → Pulsar :6650 (Event Bus)
 ```
 
-Selamat bermain! 🎮
+Have fun! 🎮
 

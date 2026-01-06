@@ -1,16 +1,16 @@
 # Realworld Simulation - Economic Sandbox MMO
 
-Sebuah persistent sandbox MMO yang berfokus pada aktivitas ekonomi, tenaga kerja, logistik, dan relasi kekuasaan - bukan combat atau quest tradisional.
+A persistent sandbox MMO focused on economic activity, labor, logistics, and power relations – not combat or scripted quests.
 
-## 📋 Fitur Utama
+## 📋 Key Features
 
-- **Reality-Consistent Sandbox**: Semua aksi membutuhkan waktu, lokasi, energi, dan tools seperti di dunia nyata
-- **Economy-First**: Pemain berkembang melalui kontrak, kepemilikan lahan, logistik, dan reputasi
-- **NPC-Driven World**: Ekonomi dasar dijalankan oleh NPC yang mensimulasikan pekerjaan dan konsumsi
-- **Command-Driven Interface**: Interaksi berbasis CLI yang dapat diakses dari berbagai client
-- **Persistent World**: Dunia terus berjalan bahkan saat pemain offline
+- **Reality-Consistent Sandbox**: Every action requires time, location, energy, and tools, just like the real world.
+- **Economy-First**: Players progress via contracts, land control, logistics capacity, and reputation – not XP or levels.
+- **NPC-Driven World**: NPCs keep the baseline economy alive (jobs, consumption, services).
+- **Command-Driven Interface**: CLI-first interaction, easy to plug into multiple clients.
+- **Persistent World**: Simulation continues while players are offline.
 
-## 🏗️ Arsitektur
+## 🏗️ Architecture
 
 ### Microservices (Event-Driven)
 
@@ -43,36 +43,36 @@ Sebuah persistent sandbox MMO yang berfokus pada aktivitas ekonomi, tenaga kerja
 
 ### Services
 
-1. **Command Gateway** (Port 8080) - Entry point untuk semua client
-2. **Character Service** (Port 50051) - Manajemen state karakter & aktivitas
-3. **World Service** (Port 50052) - Peta, lokasi, dan travel
-4. **Contracts Service** (Port 50053) - Paper & digital contracts
-5. **Ledger Service** (Port 50054) - Double-entry accounting (Rust)
-6. **Event Feed Service** (Port 50056) - Notifikasi dan news feed
+1. **Command Gateway** (Port 8080) – Single entry point for all clients.
+2. **Character Service** (Port 50051) – Character state & activities.
+3. **World Service** (Port 50052) – World map, locations, and travel graph.
+4. **Contracts Service** (Port 50053) – Paper & digital contracts.
+5. **Ledger Service** (Port 50054) – Double-entry accounting (Rust).
+6. **Event Feed Service** (Port 50056) – Notifications and news feed.
 
 ### Databases
 
-- **character_db** (Port 5432) - Character state & activities
-- **world_db** (Port 5433) - Districts, places, travel graph
-- **contracts_db** (Port 5434) - Contracts & obligations
-- **ledger_db** (Port 5435) - Accounts, transactions, audit
-- **feed_db** (Port 5436) - Event feed messages
+- **character_db** (Port 5432) – Character state & activities.
+- **world_db** (Port 5433) – Districts, places, travel graph.
+- **contracts_db** (Port 5434) – Contracts & obligations.
+- **ledger_db** (Port 5435) – Accounts, transactions, audit.
+- **feed_db** (Port 5436) – Event feed messages.
 
 ### Infrastructure
 
-- **Apache Pulsar** (Port 6650, 8080) - Event streaming backbone
-- **Redis** (Port 6379) - Caching & rate limiting
+- **Apache Pulsar** (Ports 6650, 8080) – Event streaming backbone.
+- **Redis** (Port 6379) – Caching & rate limiting.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Docker & Docker Compose
-- Go 1.21+ (untuk development lokal)
-- Rust 1.75+ (untuk Ledger service)
-- Make (optional, untuk helper commands)
+- Go 1.21+ (for local development)
+- Rust 1.75+ (for Ledger service)
+- Make (optional for helper commands)
 
-### Menjalankan Semua Services
+### Run All Services (via Docker)
 
 ```bash
 # Clone repository
@@ -96,7 +96,7 @@ docker-compose ps
 docker-compose logs -f gateway
 ```
 
-### Testing Command Gateway
+### Test Command Gateway
 
 ```bash
 # Via curl - Text command
@@ -149,30 +149,30 @@ ws.onmessage = (event) => {
 ## 📝 Available Commands
 
 ### Movement
-- `go <place>` - Pindah ke lokasi terdekat
-- `go list` - Lihat lokasi yang bisa dicapai
-- `travel <district>` - Travel ke district lain
-- `travel list` - Lihat district yang tersedia
+- `go <place>` – Move to a nearby location.
+- `go list` – Show reachable nearby locations.
+- `travel <district>` – Travel to another district.
+- `travel list` – Show available destination districts.
 
 ### Work
-- `work start` - Mulai bekerja
-- `work stop` - Berhenti bekerja
+- `work start` – Start working at your current job.
+- `work stop` – Stop working.
 
 ### Needs
-- `eat` - Makan untuk restore hunger
-- `sleep` - Tidur untuk restore energy
+- `eat` – Eat to restore hunger.
+- `sleep` – Sleep to restore energy.
 
 ### Contracts
-- `contract list` - Lihat kontrak yang dimiliki
-- `contract sign <id>` - Tanda tangan kontrak
+- `contract list` – List your contracts.
+- `contract sign <id>` – Sign a contract.
 
 ### Info
-- `status` - Lihat status karakter
-- `help [command]` - Bantuan
+- `status` – Show character status.
+- `help [command]` – Show help (optionally for a specific command).
 
 ## 🔧 Development
 
-### Run Services Locally (tanpa Docker)
+### Run Services Locally (without Docker)
 
 ```bash
 # Terminal 1 - Start databases dan infrastructure
@@ -203,7 +203,7 @@ cd services/gateway
 go run main.go
 ```
 
-### Database Migrations
+### Database Migrations (via Docker)
 
 ```bash
 # Apply migrations manually
@@ -214,7 +214,7 @@ docker exec -i ledger_db psql -U postgres -d ledger_db < migrations/ledger_db.sq
 docker exec -i feed_db psql -U postgres -d feed_db < migrations/feed_db.sql
 ```
 
-### Connect to Databases
+### Connect to Databases (via Docker)
 
 ```bash
 # Character DB
@@ -237,38 +237,38 @@ docker exec -it feed_db psql -U postgres -d feed_db
 
 ### Economic Rules
 
-1. **No Free Money**: Mata uang hanya dicetak melalui mekanisme publik (payroll, procurement)
-2. **Reality-Consistent**: Aksi membutuhkan waktu, lokasi, energi, tools
-3. **Persistent State**: Dunia terus berjalan saat pemain offline
-4. **Player as Economic Actor**: Progress melalui kontrak, ownership, logistics
+1. **No Free Money**: Currency is only minted via public mechanisms (payroll, procurement).
+2. **Reality-Consistent**: Actions require time, location, energy, tools.
+3. **Persistent State**: The world continues while players are offline.
+4. **Player as Economic Actor**: Progress via contracts, ownership, logistics.
 
 ### Contract System
 
-- **Paper Contracts**: Memerlukan kehadiran fisik untuk create/sign
-- **Digital Contracts**: Memerlukan device (phone/laptop/PC) dan network
-- Contracts enforce obligations dengan deadline dan penalties
+- **Paper Contracts**: Require physical presence to create/sign.
+- **Digital Contracts**: Require a device (phone/laptop/PC) and network.
+- Contracts enforce obligations with deadlines and penalties.
 
 ### Ledger System (Double-Entry)
 
-- Setiap transaksi balance (debit = credit)
-- Immutable audit trail
-- Mint currency hanya untuk public payroll (dengan audit)
-- Tax system terintegrasi
+- Every transaction must balance (debit = credit).
+- Immutable audit trail.
+- Minting only for public payroll (with full audit).
+- Integrated tax system.
 
 ### Character Needs
 
-- **Energy**: Berkurang saat bekerja, pulih saat tidur
-- **Hunger**: Berkurang seiring waktu, pulih saat makan
-- **Health**: Dipengaruhi kondisi kerja dan lingkungan
+- **Energy**: Decreases while working, restored by sleep.
+- **Hunger**: Decreases over time, restored by eating.
+- **Health**: Affected by work conditions and environment.
 
 ## 🎯 Roadmap
 
 ### MVP (Current)
-- [x] Command Gateway dengan CLI parsing
-- [x] Character service dengan state machine
-- [x] World service dengan place & travel
+- [x] Command Gateway with CLI parsing
+- [x] Character service with state machine
+- [x] World service with places & travel
 - [x] Contracts service (paper & digital)
-- [x] Ledger service dengan double-entry accounting
+- [x] Ledger service with double-entry accounting
 - [x] Event Feed service
 - [x] Docker orchestration
 - [x] Database migrations & seed data
@@ -284,20 +284,20 @@ docker exec -it feed_db psql -U postgres -d feed_db
 ### Phase 3 (Future)
 - [ ] NPC Mind Service (LLM-based planning)
 - [ ] WorldGen Service (procedural map generation)
-- [ ] Web client dengan UI modern
+- [ ] Modern web client
 - [ ] Discord/Telegram bot adapters
 - [ ] Graph projection service
 - [ ] Advanced analytics & reporting
 
 ## 🐛 Troubleshooting
 
-### Services tidak bisa connect ke database
+### Services cannot connect to database
 ```bash
 # Restart database containers
 docker-compose restart postgres-character postgres-world postgres-contracts postgres-ledger postgres-feed
 ```
 
-### Port sudah digunakan
+### Port already in use
 ```bash
 # Stop semua containers
 docker-compose down
@@ -307,7 +307,7 @@ sudo netstat -tulpn | grep :5432
 sudo netstat -tulpn | grep :8080
 ```
 
-### Reset semua data
+### Reset all data
 ```bash
 # Stop dan hapus semua containers + volumes
 docker-compose down -v
@@ -321,9 +321,9 @@ docker-compose up -d
 
 ## 📚 Documentation
 
-- [White Paper](white_paper.md) - Complete design philosophy
-- [Proto Definitions](proto/) - gRPC service contracts
-- [Database Schemas](migrations/) - All database migrations
+- [White Paper](white_paper.md) – Complete design philosophy
+- [Proto Definitions](proto/) – gRPC service contracts
+- [Database Schemas](migrations/) – All database migrations
 
 ## 🤝 Contributing
 
@@ -340,14 +340,14 @@ MIT License - see LICENSE file for details
 ## 👥 Team
 
 Developed following the architectural principles from the whitepaper:
-- CLI-First interaction model
-- Economy-First gameplay
-- Reality-Consistent sandbox rules
+- CLI-first interaction model
+- Economy-first gameplay
+- Reality-consistent sandbox rules
 - Microservice event-driven architecture
 
 ---
 
 **Status**: MVP Implementation Complete ✅
 
-Untuk pertanyaan dan diskusi, buka issue di repository ini.
+For questions and discussion, please open an issue in this repository.
 

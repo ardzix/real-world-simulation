@@ -1,6 +1,6 @@
 # 📁 Project Structure
 
-Dokumentasi struktur project Realworld Simulation MVP.
+Documentation of the Realworld Simulation MVP project structure.
 
 ## Directory Layout
 
@@ -64,7 +64,10 @@ realworld_simulation/
 │   ├── contracts_db.sql        # Contracts service schema
 │   ├── ledger_db.sql           # Ledger service schema
 │   ├── feed_db.sql             # Feed service schema
-│   └── seed_data.sql           # Initial seed data (demo world)
+│   ├── seed_world.sql          # World seed data
+│   ├── seed_ledger.sql         # Ledger seed data
+│   ├── seed_contracts.sql      # Contracts seed data
+│   └── seed_character.sql      # Character seed data
 │
 ├── docker/                     # Dockerfiles
 │   ├── Dockerfile.gateway
@@ -454,60 +457,61 @@ player_feed_cursor (read tracking)
 ## Key Design Patterns
 
 1. **Command → State Change → Event**
-   - All actions flow through this pipeline
-   - Command validation before state mutation
-   - Events published for downstream consumption
+   - All actions flow through this pipeline.
+   - Command validation before state mutation.
+   - Events published for downstream consumption.
 
 2. **Event Sourcing (Partial)**
-   - Ledger is append-only
-   - All services publish domain events
-   - Events can reconstruct state
+   - Ledger is append-only.
+   - All services publish domain events.
+   - Events can reconstruct state.
 
 3. **Microservice per Database**
-   - Each service owns its data
-   - No shared database
-   - Communication via events & gRPC
+   - Each service owns its data.
+   - No shared database.
+   - Communication via events & gRPC.
 
 4. **Idempotency**
-   - Command IDs for deduplication
-   - Processed command tracking
-   - Safe retry
+   - Command IDs for deduplication.
+   - Processed command tracking.
+   - Safe retry.
 
 5. **Scheduled Actions**
-   - Long-running actions (travel, work, sleep)
-   - Stored as future tasks
-   - Worker picks up when due
+   - Long-running actions (travel, work, sleep).
+   - Stored as future tasks.
+   - Worker picks up when due.
 
 ---
 
 ## Next Phase: What's Missing
 
 ### MVP Complete ✅
-- Core services implemented
-- Database schemas ready
-- Docker orchestration working
-- Command parsing & routing
-- Basic demo world seeded
+- Core services implemented.
+- Database schemas ready.
+- Docker orchestration working.
+- Command parsing & routing.
+- Basic demo world seeded.
 
 ### Phase 2 TODO
-- [ ] Actual Pulsar integration (currently mocked)
-- [ ] Scheduled action workers (Celery/cron)
-- [ ] Inventory Service
-- [ ] Logistics Service (vehicles, shipments)
-- [ ] Production & Extraction Service
-- [ ] NPC Schedule Service
-- [ ] Full gRPC proto code generation
-- [ ] Authentication (JWT)
+- [ ] Actual Pulsar integration (currently mocked).
+- [ ] Scheduled action workers (Celery/cron).
+- [ ] Inventory Service.
+- [ ] Logistics Service (vehicles, shipments).
+- [ ] Production & Extraction Service.
+- [ ] NPC Schedule Service.
+- [ ] Full gRPC proto code generation.
+- [ ] Authentication (JWT).
 
 ### Phase 3 TODO
-- [ ] NPC Mind Service (LLM planning)
-- [ ] WorldGen Service (procedural generation)
-- [ ] Web client with modern UI
-- [ ] Discord/Telegram adapters
-- [ ] Graph projection service
-- [ ] Monitoring & observability
+- [ ] NPC Mind Service (LLM planning).
+- [ ] WorldGen Service (procedural generation).
+- [ ] Web client with modern UI.
+- [ ] Discord/Telegram adapters.
+- [ ] Graph projection service.
+- [ ] Monitoring & observability.
 
 ---
 
-Untuk informasi lebih lanjut, lihat [README.md](README.md) dan [white_paper.md](white_paper.md).
+For more information, see [README.md](README.md) and [white_paper.md](white_paper.md).
+
 
